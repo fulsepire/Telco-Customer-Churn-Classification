@@ -48,6 +48,7 @@ projekat/
 
 <img src="reports/figures/01_churn_balans.png" width="700">
 <img src="reports/figures/07_korelaciona_matrica.png" width="660">
+<img src="reports/figures/04b_violinplot_numericki.png" width="1364">
 
 ### 3. Modelovanje
 Testirana su četiri modela:
@@ -71,6 +72,10 @@ GridSearchCV sa 5-fold cross validation:
 ### 5. Feature Importance
 
 <img src="reports/figures/09_feature_importance.png" width="700">
+<img src="reports/figures/10_chi2_importance.png" width="700">
+<img src="reports/figures/11_anova_importance.png" width="700">
+
+Pored XGBoost feature importance urađeni i ANOVA F-test i chi-square test radi statističke potpore nalazima dobijenim sa XGBoost algoritmom. Vidimo da se statističke analize u značajnoj meri poklapaju sa XGBoost feature importance analizom.
 
 Model sa samo 9 najvažnijih atributa postiže AUC-ROC 0.8426, što je zanemarljiva razlika u odnosu na model sa svim atributima (0.8448).
 
