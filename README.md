@@ -77,6 +77,13 @@ GridSearchCV sa 5-fold cross validation:
 
 Pored XGBoost feature importance urađeni i ANOVA F-test i chi-square test radi statističke potpore nalazima dobijenim sa XGBoost algoritmom. Vidimo da se statističke analize u značajnoj meri poklapaju sa XGBoost feature importance analizom.
 
+Top atributi:
+- Contract_Month-to-month (0.48) — ubedljivo najvažniji atribut, skoro 50% ukupne važnosti. Korisnici bez dugoročnog ugovora odlaze daleko češće jer nema nikakve obaveze koja ih zadržava.
+- InternetService_Fiber optic (0.10) — drugi najvažniji. Fiber optic korisnici su nezadovoljniji, verovatno zbog više cene u odnosu na očekivani kvalitet.
+- Contract_Two year (0.05) — negativno korelisan sa churnom, dvogodišnji ugovor jako zadržava korisnike.
+- InternetService_No (0.05) — korisnici bez interneta retko odlaze, verovatno jer koriste samo telefonsku uslugu koja je jeftinija.
+- PaymentMethod_Electronic check (0.04) — potvrđuje ono što se vidi u EDA, a to je da su electronic check korisnici skloniji churnu.
+
 Model sa samo 9 najvažnijih atributa postiže AUC-ROC 0.8426, što je zanemarljiva razlika u odnosu na model sa svim atributima (0.8448).
 
 ### 6. Deployment
