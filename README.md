@@ -99,4 +99,4 @@ i predviđanje verovatnoće raskidanja ugovora (churn) u realnom vremenu.
 
 ## Pokretanje aplikacije
 
-uv run streamlit run app/app.py
+uv run streamlit run app.py
