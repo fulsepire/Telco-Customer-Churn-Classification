@@ -1,112 +1,108 @@
 # Telco Customer Churn Classification
 
-## Opis problema
-Klasifikacioni zadatak predviđanja da li će korisnik telekomunikacione usluge 
-raskinuti ugovor (churn) ili ostati (no churn), na osnovu demografskih, 
-uslužnih i fakturačkih karakteristika.
+Predikcija odlaska korisnika (churn) telekomunikacione usluge na osnovu demografskih, uslužnih i fakturačkih podataka. SAUSAU predmetni projekat.
 
 ## Struktura projekta
 
 ```
 projekat/
 ├── data/
-│   ├── raw/               # originalni telco_data.csv
-│   └── processed/         # preprocessirani dataset
-├── models/                # exportovani modeli (.pkl) i scaler
+│   ├── raw/                      # originalni telco_data.csv
+│   └── processed/                # preprocessirani dataset
+├── models/                       # exportovani modeli (.pkl) i scaler
 ├── notebooks/
-│   └── 01_eda.ipynb          # EDA, preprocessing, modelovanje
+│   └── 01_eda.ipynb              # EDA, preprocessing, modelovanje
 ├── reports/
-│   └── figures/              # grafici iz EDA i evaluacije
+│   └── figures/                  # grafici iz EDA i evaluacije
 ├── src/
 │   └── churn/
 │       ├── __init__.py
 │       ├── preprocessing.py      # priprema i enkodiranje podataka
 │       ├── model.py              # treniranje XGBoost modela
-│       ├── evaluate.py           # metrike i confusion matrix
+│       ├── evaluate.py           # metrike i konfuziona matrica
 │       └── predict.py            # predikcija na novim podacima
-├── app.py                # Streamlit aplikacija
+├── app.py                        # Streamlit aplikacija
 ├── pyproject.toml
 └── README.md
 ```
 
-## Postupak
+## Zahtevi
 
-### 1. Preprocessing
-- Konverzija TotalCharges iz string u numerički tip (11 praznih vrednosti)
-- Uklanjanje customerID kolona
-- Binarno enkodiranje Yes/No kolona
-- One-Hot Encoding za Contract, InternetService, PaymentMethod
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) — upravljanje zavisnostima i virtuelnim okruženjem
 
-### 2. EDA
-- Dataset ima 7043 redova i 21 kolonu
-- Ciljna promenljiva je imbalanced: 73.5% No Churn, 26.5% Churn
-- Ključni nalazi:
-  - Korisnici sa kraćim tenure-om češće odlaze
-  - Month-to-month ugovor ima najviši churn rate
-  - Fiber optic korisnici odlaze češće od DSL
-  - Electronic check korisnici imaju veći churn rate (Electronic check ne uzrokuje churn, ali korisnici koji ga koriste imaju profil koji je skloniji churnu; primetiti razliku između korelacije i uzročnosti)
+## Instalacija
 
-<img src="reports/figures/01_churn_balans.png" width="700">
-<img src="reports/figures/07_korelaciona_matrica.png" width="660">
-<img src="reports/figures/04b_violinplot_numericki.png" width="1364">
+Kloniraj repozitorijum i instaliraj zavisnosti:
 
-### 3. Modelovanje
-Testirana su četiri modela:
+```bash
+git clone <url-repozitorijuma>
+cd projekat
+uv sync
+```
 
-| Model | F1 (Churn) | Recall (churn) | AUC-ROC |
-|---|---|---|---|
-| Logistička regresija | 0.62 | 0.79 | 0.8418 |
-| Random Forest | 0.59 | 0.63 | 0.8217 |
-| XGBoost | 0.60 | 0.68 | 0.8197 |
-| SVM | 0.59 | 0.82 | 0.7927 |
+`uv sync` instalira sve zavisnosti definisane u `pyproject.toml` u izolovano virtuelno okruženje.
 
-### 4. Podešavanje hiperparametara
-GridSearchCV sa 5-fold cross validation:
+### Glavne zavisnosti
 
-| Model | F1 (Churn) | Recall (churn) | AUC-ROC |
-|---|---|---|---|
-| Random Forest (tuned) | 0.63 | 0.78 | 0.8413 |
-| XGBoost (tuned) | 0.62 | 0.79 | 0.8448 |
-| SVM (tuned) | 0.62 | 0.80 | 0.8326 |
+| Paket | Namena |
+|---|---|
+| `pandas`, `numpy` | Manipulacija podacima |
+| `matplotlib`, `seaborn` | Vizualizacija |
+| `scikit-learn` | Preprocessing, modeli, metrike, GridSearchCV |
+| `xgboost` | XGBoost klasifikator |
+| `streamlit` | Web aplikacija za predikciju |
+| `joblib` | Serijalizacija modela |
+| `jupyter`, `ipykernel` | Notebook okruženje |
 
-### 5. Feature Importance
+## Pokretanje
 
-<img src="reports/figures/09_feature_importance.png" width="700">
+### Jupyter notebook (EDA, preprocessing, treniranje modela)
 
-Top atributi:
-- Contract_Month-to-month (0.48) — ubedljivo najvažniji atribut, skoro 50% ukupne važnosti. Korisnici bez dugoročnog ugovora odlaze daleko češće jer nema nikakve obaveze koja ih zadržava.
-- InternetService_Fiber optic (0.10) — drugi najvažniji. Fiber optic korisnici su nezadovoljniji, verovatno zbog više cene u odnosu na očekivani kvalitet.
-- Contract_Two year (0.05) — negativno korelisan sa churnom, dvogodišnji ugovor jako zadržava korisnike.
-- InternetService_No (0.05) — korisnici bez interneta retko odlaze, verovatno jer koriste samo telefonsku uslugu koja je jeftinija.
-- PaymentMethod_Electronic check (0.04) — potvrđuje ono što se vidi u EDA, a to je da su electronic check korisnici skloniji churnu.
+```bash
+uv run jupyter notebook
+```
 
-<img src="reports/figures/10_chi2_importance.png" width="542">
-<img src="reports/figures/11_anova_importance.png" width="700">
+Otvori `notebooks/01_eda.ipynb`.
 
-Pored XGBoost feature importance urađeni i ANOVA F-test i chi-square test radi statističke potpore nalazima dobijenim sa XGBoost algoritmom. Vidimo da se statističke analize u značajnoj meri poklapaju sa XGBoost feature importance analizom.
+### Streamlit aplikacija
 
-
-
-Model sa samo 9 najvažnijih atributa postiže AUC-ROC 0.8426, što je zanemarljiva razlika u odnosu na model sa svim atributima (0.8448).
-
-### 6. Deployment
-Streamlit aplikacijom omogućen unos podataka o korisniku 
-i predviđanje verovatnoće raskidanja ugovora (churn) u realnom vremenu.
-
-## Rezultati i zaključci
-- XGBoost sa podešenim hiperparametrima je najbolji model (AUC-ROC 0.8448)
-- Najvažniji faktor je tip ugovora (month-to-month korisnici odlaze najčešće)
-- Redukcija na 9 atributa ne utiče značajno na performanse (AUC-ROC: 0.8448 vs 0.8426), logičnije je odabrati jednostavniji model
-- Dataset je imbalanced što ograničava Precision za Churn klasu (~0.51)
-- Korisnici koji odlaze imaju mali TotalCharges jer su kratko bili sa kompanijom što je direktna posledica kratkog tenure-a, a ne nužno uzrok churna sam po sebi.
-- Atributi nisu dovoljno "jaki", većina kolona su kategorijske Yes/No vrednosti koje nose relativno malo informacija. Nema npr. podataka o broju poziva korisničkoj službi, broju reklamacija, ili istoriji plaćanja, a to su faktori koji bi značajno poboljšali model.
-- Logistička regresija daje rezultate koji su uporedivi sa složenijim modelima, što znači da su odnosi u podacima pretežno linearni.
-
-## Preporuke za unapređenje
-- Dodati više atributa (broj kontakata sa podrškom, istorija reklamacija)
-- Primeniti SMOTE (tehnika za sintetičko generisanje novih Churn primera) za bolji tretman imbalanced dataseta
-- Prikupiti duži vremenski period podataka
-
-## Pokretanje aplikacije
-
+```bash
 uv run streamlit run app.py
+```
+
+Aplikacija se pokreće na `http://localhost:8501`. Omogućava unos podataka o korisniku i predikciju verovatnoće churna u realnom vremenu.
+
+## Korišćenje modula iz `src/churn`
+
+Svi moduli su pisani kao funkcije koje se mogu uvesti i koristiti nezavisno od notebooka:
+
+```python
+from src.churn.preprocessing import preprocess
+from src.churn.predict import predict
+import pandas as pd
+
+df_raw = pd.read_csv('data/raw/telco_data.csv')
+df = preprocess(df_raw)
+```
+
+Za predikciju nad jednim novim korisnikom, pogledaj `src/churn/predict.py`.
+
+## Model u produkciji
+
+Aplikacija i `predict.py` koriste **XGBoost** model sa podešenim hiperparametrima (GridSearchCV), treniran na 9 najvažnijih atributa (odabranih putem feature importance analize). Model i `StandardScaler` su sačuvani u `models/` folderu kao `.pkl` fajlovi pomoću `joblib`.
+
+| Fajl | Sadržaj |
+|---|---|
+| `models/xgb_model.pkl` | Finalni XGBoost model (tuned, top 9 atributa) |
+| `models/scaler.pkl` | StandardScaler fitovan na train setu |
+| `models/lr_model.pkl` | Logistička regresija (baseline) |
+| `models/rf_model.pkl`, `rf_model_tuned.pkl` | Random Forest (default i tuned) |
+| `models/xgb_model_default.pkl` | XGBoost sa default hiperparametrima |
+| `models/svm_model_tuned.pkl` | SVM (tuned) |
+
+## Napomene
+
+- Notebook koristi `%load_ext autoreload` / `%autoreload 2` kako bi se izmene u `src/churn/*.py` fajlovima automatski učitavale bez restarta kernela.
+- Dataset sadrži 11 redova sa nedostajućom vrednošću u `TotalCharges` (korisnici sa `tenure=0`), to je tretirano u `preprocessing.py`.
+- Ciljna promenljiva (`Churn`) je neuravnotežena (~73.5% No / ~26.5% Yes), to je kompenzovano korišćenjem `class_weight='balanced'` ili `scale_pos_weight`.
